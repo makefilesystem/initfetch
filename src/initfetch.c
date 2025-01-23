@@ -181,7 +181,7 @@ char* read_all(char* file) {
 
 int main() {
     xwrap_init();
-    read_config("initfetch.conf");
+    read_config("/etc/initfetch.conf");
 
     fetch_user_host();
     if (enable_distro) {
