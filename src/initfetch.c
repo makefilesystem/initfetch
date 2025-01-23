@@ -62,7 +62,7 @@ void read_config(const char* config_file) {
     while (fgets(line, sizeof(line), file)) {
         if (strncmp(line, "colors=", 7) == 0) {
             char* color = line + 7;
-            color[strcspn(color, "\n")] = '\0';  // Remove newline character
+            color[strcspn(color, "\n")] = '\0'; 
 
             if (strcmp(color, "magenta") == 0) selected_color = MAGENTA;
             else if (strcmp(color, "black") == 0) selected_color = BLACK;
