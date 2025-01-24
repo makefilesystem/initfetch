@@ -18,7 +18,7 @@ initfetch.c (~/initfetch/src)
 #include <sys/sysinfo.h>
 #include <sys/utsname.h>
 #include <unistd.h>
-
+#include <sys/stat.h> // For mkdir
 #include "xlib.h"
 
 char* read_grep(char* file, char* pattern, int offset, int cut);
@@ -62,7 +62,7 @@ void read_config(const char* config_file) {
     while (fgets(line, sizeof(line), file)) {
         if (strncmp(line, "colors=", 7) == 0) {
             char* color = line + 7;
-            color[strcspn(color, "\n")] = '\0'; 
+            color[strcspn(color, "\n")] = '\0';
 
             if (strcmp(color, "magenta") == 0) selected_color = MAGENTA;
             else if (strcmp(color, "black") == 0) selected_color = BLACK;
@@ -179,9 +179,43 @@ char* read_all(char* file) {
     return content;
 }
 
-int main() {
+void generate_default_config(const char* config_path) {
+    FILE* file = fopen(config_path, "w");
+    if (!file) {
+        fprintf(stderr, "Error: Could not create config file %s\n", config_path);
+        return;
+    }
+
+    fprintf(file, "# Colors = magenta, black, white, red, green, blue, yellow\n");
+    fprintf(file, "colors=magenta\n\n");
+    fprintf(file, "distro=true\n");
+    fprintf(file, "kernel=true\n");
+    fprintf(file, "uptime=true\n");
+    fprintf(file, "ram=true\n");
+    fprintf(file, "wm=true\n");
+    fprintf(file, "shell=true\n");
+
+    fclose(file);
+    printf("Default configuration created at %s\n", config_path);
+}
+
+int main(int argc, char* argv[]) {
+    char config_dir[256];
+    char config_file[256];
+
+    snprintf(config_dir, sizeof(config_dir), "%s/.config/initfetch", getenv("HOME"));
+    snprintf(config_file, sizeof(config_file), "%s/initfetch.conf", config_dir);
+
+    // Handle --init argument
+    if (argc > 1 && strcmp(argv[1], "--init") == 0) {
+        mkdir(config_dir, 0755); // Create directory if not exists
+        generate_default_config(config_file);
+        return 0;
+    }
+
+    // Initialize and read configuration
     xwrap_init();
-    read_config("/etc/initfetch.conf");
+    read_config(config_file);
 
     fetch_user_host();
     if (enable_distro) {
